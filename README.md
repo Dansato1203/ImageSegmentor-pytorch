@@ -1,1 +1,0 @@
-# soccerfield_detector
