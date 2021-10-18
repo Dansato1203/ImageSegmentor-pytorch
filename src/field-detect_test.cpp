@@ -5,9 +5,9 @@
 #include <iostream>
 #include <memory>
 
-void detect_whiteline(torch::jit::script::Module &module, torch::Device &device, const cv::Mat &mat, float thre = 0.5, cv::Mat &result_g, cv::Mat result_w){
+std::vector<cv::Mat> detect_soccerfield(torch::jit::script::Module &module, torch::Device &device, const cv::Mat &mat, float thre){
     torch::NoGradGuard no_grad;
-    std::vector<int64_t> shape = {3, 3, mat.rows, mat.cols};
+    std::vector<int64_t> shape = {1, 3, mat.rows, mat.cols};
     std::vector<float> imdata(3 * mat.rows * mat.cols);
     for (size_t y = 0; y < mat.rows; ++y) {
         for (size_t x = 0; x < mat.cols; ++x) {
@@ -18,18 +18,17 @@ void detect_whiteline(torch::jit::script::Module &module, torch::Device &device,
         }
     }
     torch::Tensor tensor = torch::from_blob(&imdata[0], at::IntList(shape), at::ScalarType::Float).to(device);
-    at::Tensor output_g = module.forward({tensor}).toTensor()[0][0];
-    at::Tensor output_w = module.forward({tensor}).toTensor()[0][1];
-    cv::Mat ou_g(mat.rows, mat.cols, CV_32FC1, output_g.to(torch::kCPU).data_ptr());
-    cv::Mat out_w(mat.rows, mat.cols, CV_32FC1, output_w.to(torch::kCPU).data_ptr());
-    /*
-    cv::Mat result_g(mat.rows, mat.cols, CV_8UC1);
+    //at::Tensor output_g = module.forward({tensor}).toTensor()[0][0];
+    //at::Tensor output_w = module.forward({tensor}).toTensor()[0][1];
+    at::Tensor output = module.forward({tensor}).toTensor();
+	cv::Mat out_g(mat.rows, mat.cols, CV_32FC1, output.to(torch::kCPU)[0][0].data_ptr());
+    cv::Mat out_w(mat.rows, mat.cols, CV_32FC1, output.to(torch::kCPU)[0][1].data_ptr());
+	cv::Mat result_g(mat.rows, mat.cols, CV_8UC1);
     cv::Mat result_w(mat.rows, mat.cols, CV_8UC1);
-    */
-    float *ptr_g = out.ptr_g<float>(0);
-    float *ptr_w = out.ptr_w<float>(0);
-    unsigned char *outp_g = result.ptr_g<unsigned char>(0);
-    unsigned char *outp_w = result.ptr_w<unsigned char>(0);
+    float *ptr_g = out_g.ptr<float>(0);
+    float *ptr_w = out_w.ptr<float>(0);
+    unsigned char *outp_g = result_g.ptr<unsigned char>(0);
+    unsigned char *outp_w = result_w.ptr<unsigned char>(0);
     for (size_t i = 0; i < mat.cols * mat.rows; ++i) {
         if (*ptr_g > thre){
             *outp_g = 255;
@@ -42,17 +41,16 @@ void detect_whiteline(torch::jit::script::Module &module, torch::Device &device,
         }else{
             *outp_w = 0;
         }
-
         ++ptr_g;
         ++outp_g;
         ++ptr_w;
         ++outp_w;
     }
-};
+    return {result_g, result_w};
+}
 
 int main(int argc, const char *argv[]) {
     cv::Mat mat;
-    cv::Mat result_g, result_w;
     if (argc != 3) {
         std::cerr << "usage: example-app <path-to-exported-script-module> <image>\n";
         return -1;
@@ -77,13 +75,15 @@ int main(int argc, const char *argv[]) {
             cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
 
             auto t0 = std::chrono::system_clock::now();
-            cv::Mat out = detect_whiteline(module, device, mat, 0.5, result_g, result_w);
+			std::vector<cv::Mat> result = detect_soccerfield(module, device, mat, 0.5);
             auto t1 = std::chrono::system_clock::now();
             std::cout << "processing time: " << std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()
                       << " us" << std::endl;
 
-            cv::imshow("green", result_g);
-            cv::imshow("white", result_w;
+            //cv::imshow("green", result_g);
+            //cv::imshow("white", result_w);
+            cv::imshow("green", result.at(0));
+            cv::imshow("white", result.at(1));
             cv::waitKey(0);
             //cv::imwrite("out.png", out);
         }
