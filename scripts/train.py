@@ -91,7 +91,7 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+parser.add_argument('--batch-size', type=int, default=5, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
@@ -121,8 +121,8 @@ val_dataset_dir = input()
 
 dataset = SoccerFieldDataset(Dataset_dir + '/')
 val_dataset = SoccerFieldDataset(val_dataset_dir + '/')
-train_loader = DataLoader(dataset, batch_size=5, shuffle=True, num_workers=0)
-val_loader = DataLoader(val_dataset, batch_size=5, shuffle=False, num_workers=0)
+train_loader = DataLoader(dataset, args.batch_size, shuffle=True, num_workers=0)
+val_loader = DataLoader(val_dataset, args.batch_size, shuffle=False, num_workers=0)
 
 cpu = torch.device("cpu")
 
@@ -137,11 +137,9 @@ def train(args, model, device, dataloader, optimizer, epoch):
 		loss = lossfun(output, train_target)
 		loss.backward()
 		optimizer.step()
-		if batch_idx % args.log_interval == 0:
+		if batch_idx == len(dataloader) - 1:
 			loss_list.append(loss.item())
-			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-				epoch, batch_idx * len(train_data), len(dataloader.dataset),
-				100. * batch_idx / len(dataloader), loss.item()))
+			print(f'Train Epoch: {i} Loss: {loss.item}')
 			if args.dry_run:
 				break
 
@@ -155,7 +153,7 @@ def valid(args, model, device, dataloader, epoch):
 			output = model(data)
 
 			loss = loss_fun(output, target)
-			if batch_idx % args.log_interval == 0:
+			if batch_idx == len(dataloader) - 1:
 				val_loss_list.append(loss.item())
 				  
 				# pred
