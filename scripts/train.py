@@ -113,6 +113,12 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 args = parser.parse_args(args=[])
 
+
+print('Dataset_dir : ', end='')
+Dataset_dir = input()
+print('val_dataset : ', end='')
+val_dataset_dir = input()
+
 dataset = SoccerFieldDataset(Dataset_dir + '/')
 val_dataset = SoccerFieldDataset(val_dataset_dir + '/')
 train_loader = DataLoader(dataset, batch_size=5, shuffle=True, num_workers=0)
