@@ -11,7 +11,7 @@ def load_image(fname, imw, imh):
 	a = np.asarray(img).transpose(2,0,1).astype(np.float32)/255.
 	return a, img
 
-def eval_image(fname, thre, model):
+def eval_image(fname, thre):
 	imw = 320
 	imh = 240
 	testx = np.zeros((0, 3, imh, imw), dtype=np.float32)
@@ -49,15 +49,14 @@ def eval_image(fname, thre, model):
 	plt.figure(figsize=(16,9))
 	plt.imshow(imd)
 
-def main():
-	model_path = "wl_model.pt"
+cpu = torch.device("cpu")
 
-	model = MLP.MLP(4, 3)
-	model.load_state_dict(torch.load(model_path))
-	model.eval()
+model_path = "wl_model.pt"
 
-	eval_image('/home/citbrains/Dan/100_test/000020.jpg', 0.5, model)
-	eval_image('/home/vitbrains/Dan/100_test/000143.jpg', 0.5, model)
+model = MLP.MLP(4, 3)
+model.load_state_dict(torch.load(model_path))
+model.eval()
 
-if __name__ == "__main__":
-	main()
+eval_image('/home/citbrains/Dan/100_test/000020.jpg', 0.5)
+eval_image('/home/vitbrains/Dan/100_test/000143.jpg', 0.5)
+
