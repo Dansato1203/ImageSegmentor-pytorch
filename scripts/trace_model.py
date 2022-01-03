@@ -1,6 +1,7 @@
 import torch
 import MLP
 import numpy as np
+from PIL import Image
 
 def load_image(fname, imw, imh):
 	img = Image.open(fname).resize((imw, imh))
