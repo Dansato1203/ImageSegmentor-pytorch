@@ -50,3 +50,6 @@ def main():
 
 	eval_image('/home/citbrains/Dan/100_test/000020.jpg', 0.5)
 	eval_image('/home/vitbrains/Dan/100_test/000143.jpg', 0.5)
+
+if __name__ == "__main__":
+	main()
