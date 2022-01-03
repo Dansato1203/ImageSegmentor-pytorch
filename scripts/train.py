@@ -139,7 +139,7 @@ def train(args, model, device, dataloader, optimizer, epoch):
 		optimizer.step()
 		if batch_idx == len(dataloader) - 1:
 			loss_list.append(loss.item())
-			print(f'Train Epoch: {i} Loss: {loss.item}')
+			print(f'Train Epoch: {i} Loss: {loss.item()}')
 			if args.dry_run:
 				break
 
