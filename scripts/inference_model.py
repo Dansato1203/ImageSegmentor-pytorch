@@ -5,6 +5,12 @@ import numpy as np
 
 import MLP
 
+def load_image(fname, imw, imh):
+	img = Image.open(fname).resize((imw, imh))
+
+	a = np.asarray(img).transpose(2,0,1).astype(np.float32)/255.
+	return a, img
+
 def eval_image(fname, thre):
 	imw = 320
 	imh = 240
