@@ -50,6 +50,7 @@ def eval_image(fname, thre):
 	imd.paste(thimg_w, (imw*2, 0))
 	plt.figure(figsize=(16,9))
 	plt.imshow(imd)
+	plt.show()
 
 cpu = torch.device("cpu")
 
