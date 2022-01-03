@@ -1,4 +1,5 @@
 import torch
+import MLP
 import numpy as np
 
 def load_image(fname, imw, imh):
@@ -6,6 +7,12 @@ def load_image(fname, imw, imh):
 	a = np.asarray(img).transpose(2,0,1).astype(np.float32)/255.
 
 	return a, img
+
+model_path = "wl_model.pt"
+
+model = MLP.MLP(4, 3)
+model.load_state_dict(torch.load(model_path))
+model.eval()
 
 # save torchscript for C++
 a, img = load_image('/home/citbrains/Dan/100_test/000020.jpg', 320, 240)
