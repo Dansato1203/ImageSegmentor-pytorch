@@ -3,6 +3,8 @@ import time
 from PIL import Image
 import numpy as np
 
+import model
+
 def eval_image(fname, thre):
 	imw = IMW
 	imh = IMH
@@ -44,7 +46,7 @@ def eval_image(fname, thre):
 def main():
 	model_path = "wl_model.pt"
 
-	model = MLP(4, 3)
+	model = model.MLP(4, 3)
 	model.load_state_dict(torch.load(model_path))
 	model.eval()
 
