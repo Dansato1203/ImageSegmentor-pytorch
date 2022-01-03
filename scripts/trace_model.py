@@ -19,4 +19,4 @@ a, img = load_image('/home/citbrains/Dan/100_test/000020.jpg', 320, 240)
 #a1 = np.expand_dims(a,axis=0)
 ex = np.expand_dims(a, axis=0)
 traced_script_module = torch.jit.trace(model, torch.FloatTensor(ex))
-traced_script_module.save(weight_name) # これをC++から呼び出す
+traced_script_module.save('traced_sf_model.pt') # これをC++から呼び出す
