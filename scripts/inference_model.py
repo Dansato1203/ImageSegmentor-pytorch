@@ -60,5 +60,5 @@ model.load_state_dict(torch.load(model_path))
 model.eval()
 
 eval_image('/home/citbrains/Dan/100_test/000020.jpg', 0.5)
-eval_image('/home/vitbrains/Dan/100_test/000143.jpg', 0.5)
+eval_image('/home/citbrains/Dan/100_test/000143.jpg', 0.5)
 
