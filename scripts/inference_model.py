@@ -6,8 +6,8 @@ import numpy as np
 import MLP
 
 def eval_image(fname, thre):
-	imw = IMW
-	imh = IMH
+	imw = 320
+	imh = 240
 	testx = np.zeros((0, 3, imh, imw), dtype=np.float32)
 
 	a, img = load_image(fname, imw, imh)
