@@ -18,7 +18,7 @@ IMH = 240
 
 import matplotlib.pyplot as plt
 
-import model
+import MLP
 
 def load_image(fname, imw, imh):
 	img = Image.open(fname).resize((imw, imh))
@@ -193,7 +193,7 @@ def valid(args, model, device, dataloader, epoch):
 				if args.dry_run:
 					break
 
-model = model.MLP(4, 3).to(device)
+model = MLP.MLP(4, 3).to(device)
 optimizer = optim.Adadelta(model.parameters(), lr=args.lr, weight_decay=0.001)
 model.to(device)
 
