@@ -247,7 +247,7 @@ for i in range(1000):
 	plt.axis([0, 1000, 0, ymax])
 	plt.xticks(range(0, 1000 + 1, 100))
 
-	plt.show()
+	plt.pause(.01)
 
 # save to file
 cpu = torch.device("cpu")
