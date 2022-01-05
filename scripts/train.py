@@ -200,21 +200,22 @@ model.to(device)
 # 繰り返し数は要調整
 # Lossが0.05くらいまで下がるはず（下がらなかったらやり直す）
 loss_list = []
+val_loss_list = []
 acc_list = []
 acc_g_list = []
 acc_w_list = []
 f_list = []
 f_g_list = []
 f_w_list = []
-val_loss_list = []
+
 for i in range(1000):
 	train(args, model=model, device=device, dataloader=train_loader, optimizer=optimizer, epoch=i)
 	valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
 
-	plt.figure(figsize=(16,16))
-	plt.subplot(4,1,1)
-	plt.plot(range(i), loss_list, 'r', label='train_loss', linewidth=2)
-	plt.plot(range(i), val_loss_list, 'b', label='val_loss', linewidth=2)
+	plt.figure(figsize=(16,15))
+	plt.subplot(3,1,1)
+	plt.plot(range(i+1), loss_list, 'r', label='train_loss', linewidth=2)
+	plt.plot(range(i+1), val_loss_list, 'b', label='val_loss', linewidth=2)
 	plt.legend(fontsize=15)
 	plt.xlabel('epoch')
 	plt.ylabel('loss')
@@ -223,10 +224,10 @@ for i in range(1000):
 	plt.axis([0, 1000, 0, ymax])
 	plt.xticks(range(0, 1000 + 1, 100))
 
-	plt.subplot(4,1,2)
-	plt.plot(range(i), loss_list, 'r', label='all_accuracy', linewidth=2)
-	plt.plot(range(i), val_loss_list, 'g', label='green_accuracy', linewidth=2)
-	plt.plot(range(i), val_loss_list, 'k', label='white_accuracy', linewidth=2)
+	plt.subplot(3,1,2)
+	plt.plot(range(i+1), acc_list, 'r', label='all_accuracy', linewidth=2)
+	plt.plot(range(i+1), acc_g_list, 'g', label='green_accuracy', linewidth=2)
+	plt.plot(range(i+1), acc_w_list, 'k', label='white_accuracy', linewidth=2)
 	plt.legend(fontsize=15)
 	plt.xlabel('epoch')
 	plt.ylabel('accuracy')
@@ -235,10 +236,10 @@ for i in range(1000):
 	plt.axis([0, 1000, 0, ymax])
 	plt.xticks(range(0, 1000 + 1, 100))
 
-	plt.subplot(4,1,3)
-	plt.plot(range(i), loss_list, 'r', label='all_f-score', linewidth=2)
-	plt.plot(range(i), val_loss_list, 'b', label='green_f-score', linewidth=2)
-	plt.plot(range(i), val_loss_list, 'y', label='white_f-score', linewidth=2)
+	plt.subplot(3,1,3)
+	plt.plot(range(i+1), f_list, 'r', label='all_f-score', linewidth=2)
+	plt.plot(range(i+1), f_g_list, 'b', label='green_f-score', linewidth=2)
+	plt.plot(range(i+1), f_w_list, 'y', label='white_f-score', linewidth=2)
 	plt.legend(fontsize=15)
 	plt.xlabel('epoch')
 	plt.ylabel('f_score')
