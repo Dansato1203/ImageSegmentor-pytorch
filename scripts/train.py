@@ -212,6 +212,8 @@ for i in range(1000):
 	train(args, model=model, device=device, dataloader=train_loader, optimizer=optimizer, epoch=i)
 	valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
 
+	plt.clf()
+
 	plt.figure(figsize=(16,15))
 	plt.subplot(3,1,1)
 	plt.plot(range(i+1), loss_list, 'r', label='train_loss', linewidth=2)
