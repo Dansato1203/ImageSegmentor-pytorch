@@ -91,11 +91,11 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch-size', type=int, default=5, metavar='N',
+parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=14, metavar='N',
+parser.add_argument('--epochs', type=int, default=3000, metavar='N',
                     help='number of epochs to train (default: 14)')
 parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
                     help='learning rate (default: 1.0)')
@@ -207,51 +207,60 @@ acc_w_list = []
 f_list = []
 f_g_list = []
 f_w_list = []
-fig = plt.figure(figsize=(16,15))
 
-for i in range(1000):
+fig = plt.figure(figsize=(8,10))
+ax1 = fig.add_subplot(3,1,1)
+ax2 = fig.add_subplot(3,1,2)
+ax3 = fig.add_subplot(3,1,3)
+
+for i in range(args.epochs):
 	train(args, model=model, device=device, dataloader=train_loader, optimizer=optimizer, epoch=i)
 	valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
 
-	#fig = plt.figure(figsize=(16,15))
-
-	ax1 = fig.add_subplot(3,1,1)
 	ax1.plot(range(i+1), loss_list, 'r', label='train_loss', linewidth=2)
 	ax1.plot(range(i+1), val_loss_list, 'b', label='val_loss', linewidth=2)
-	ax1.legend(fontsize=15)
-	ax1.xlabel('epoch')
-	ax1.ylabel('loss')
-	ax1.grid(True)
+	ax1.legend(fontsize=10)
 	[xmin, xmax, ymin, ymax] = ax1.axis()
-	ax1.axis([0, 1000, 0, ymax])
-	ax1.xticks(range(0, 1000 + 1, 100))
+	ax1.axis([0, args.epochs, 0, ymax])
+	ax1.grid(True)
+	ax1.set_xlabel('epoch')
+	ax1.set_ylabel('loss')
+	ax1.set_xticks(range(0, args.epochs + 1, 500))
 
-	ax2 = fig.add_subplot(3,1,2)
 	ax2.plot(range(i+1), acc_list, 'r', label='all_accuracy', linewidth=2)
 	ax2.plot(range(i+1), acc_g_list, 'g', label='green_accuracy', linewidth=2)
 	ax2.plot(range(i+1), acc_w_list, 'k', label='white_accuracy', linewidth=2)
-	ax2.legend(fontsize=15)
-	ax2.xlabel('epoch')
-	ax2.ylabel('accuracy')
-	ax2.grid(True)
+	ax2.legend(fontsize=10)
 	[xmin, xmax, ymin, ymax] = ax2.axis()
-	ax2.axis([0, 1000, 0, ymax])
-	ax2.xticks(range(0, 1000 + 1, 100))
+	ax2.axis([0, args.epochs, ymin-0.2, ymax])
+	ax2.grid(True)
+	ax2.set_xlabel('epoch')
+	ax2.set_ylabel('accuracy')
+	ax2.set_xticks(range(0, args.epochs + 1, 500))
 
-	ax3 = fig.add_subplot(3,1,3)
 	ax3.plot(range(i+1), f_list, 'r', label='all_f-score', linewidth=2)
 	ax3.plot(range(i+1), f_g_list, 'b', label='green_f-score', linewidth=2)
 	ax3.plot(range(i+1), f_w_list, 'y', label='white_f-score', linewidth=2)
-	ax3.legend(fontsize=15)
-	ax3.xlabel('epoch')
-	ax3.ylabel('f_score')
-	ax3.grid(True)
+	ax3.legend(fontsize=10)
 	[xmin, xmax, ymin, ymax] = ax3.axis()
-	ax3.axis([0, 1000, 0, ymax])
-	ax3.xticks(range(0, 1000 + 1, 100))
+	ax3.axis([0, args.epochs, 0, ymax])
+	ax3.grid(True)
+	ax3.set_xlabel('epoch')
+	ax3.set_ylabel('f_score')
+	ax3.set_xticks(range(0, args.epochs + 1, 500))
+
+	if i == 0:
+		ax1.legend(fontsize=10)
+		ax2.legend(fontsize=10)
+		ax3.legend(fontsize=10)
+
+	if i == args.epochs - 1:
+		plt.savefig("graph.png")
 
 	plt.pause(.05)
-	plt.cla()
+	ax1.cla()
+	ax2.cla()
+	ax3.cla()
 
 # save to file
 cpu = torch.device("cpu")
