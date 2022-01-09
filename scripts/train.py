@@ -91,7 +91,7 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+parser.add_argument('--batch-size', type=int, default=50, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
@@ -256,6 +256,12 @@ for i in range(args.epochs):
 
 	if i == args.epochs - 1:
 		plt.savefig("graph.png")
+
+	if i % 500 == 0:
+		cpu = torch.device("cpu")
+		model.to(cpu)
+		torch.save(model.state_dict(), "220109_" + str(i) +  "_wl_model.pt")
+		model.to(device)
 
 	plt.pause(.05)
 	ax1.cla()
