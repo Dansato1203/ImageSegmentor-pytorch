@@ -257,6 +257,10 @@ for i in range(args.epochs):
 	if i == args.epochs - 1:
 		plt.savefig("graph.png")
 
+	if i % 100 == 0:
+		ax1.text(range(i+1), loss_list, c = 'r', str(loss_list[i]), va='bottom')
+		ax1.text(range(i+1), val_loss_list, c = 'b', str(val_loss_list[i]), va='bottom')
+
 	if i % 500 == 0:
 		cpu = torch.device("cpu")
 		model.to(cpu)
