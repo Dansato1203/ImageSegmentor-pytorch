@@ -258,8 +258,8 @@ for i in range(args.epochs):
 		plt.savefig("graph.png")
 
 	if i % 100 == 0:
-		ax1.text(range(i+1), loss_list, str(loss_list[i]), c = 'r',  va = 'bottom')
-		ax1.text(range(i+1), val_loss_list, str(val_loss_list[i]), c = 'b', va = 'bottom')
+		ax1.text(i+1, loss_list[i], str(loss_list[i]), c = 'r',  va = 'bottom')
+		ax1.text(i+1, val_loss_list[i], str(val_loss_list[i]), c = 'b', va = 'bottom')
 
 	if i % 500 == 0:
 		cpu = torch.device("cpu")
