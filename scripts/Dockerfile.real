@@ -1,0 +1,28 @@
+FROM nvidia/cuda:11.5.1-cudnn8-devel-ubuntu20.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt update && apt install -y --no-install-recommends \
+    vim \
+    python3 \
+    python3-pip \
+    libgl1-mesa-dev \
+    libgtk2.0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --upgrade pip \
+    && pip3 install opencv-python==4.3.0.38 \
+    numpy \
+    matplotlib \
+    scikit-learn \
+    torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+
+WORKDIR /train
+
+#COPY 220217_dataset /train/train_dataset
+COPY 20190622_dataset /train/train_dataset
+COPY 20190622_dataset /train/test_dataset
+COPY MLP.py /train/
+COPY 11_dataset/train.py /train/
+COPY model_trace.py /train/
+
