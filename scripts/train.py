@@ -12,6 +12,7 @@ import numpy as np
 import argparse
 import glob
 import os
+import time
 
 IMW = 320
 IMH = 240
@@ -91,11 +92,11 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch-size', type=int, default=50, metavar='N',
+parser.add_argument('--batch-size', type=int, default=5, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=3000, metavar='N',
+parser.add_argument('--epochs', type=int, default=1000, metavar='N',
                     help='number of epochs to train (default: 14)')
 parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
                     help='learning rate (default: 1.0)')
@@ -113,16 +114,10 @@ parser.add_argument('--save-model', action='store_true', default=False,
                     help='For Saving the current Model')
 args = parser.parse_args(args=[])
 
-
-print('Dataset_dir : ', end='')
-Dataset_dir = input()
-print('val_dataset : ', end='')
-val_dataset_dir = input()
-
-dataset = SoccerFieldDataset(Dataset_dir + '/')
-val_dataset = SoccerFieldDataset(val_dataset_dir + '/')
+dataset = SoccerFieldDataset('train_dataset/')
+#val_dataset = SoccerFieldDataset('val_dataset/')
 train_loader = DataLoader(dataset, args.batch_size, shuffle=True, num_workers=0)
-val_loader = DataLoader(val_dataset, args.batch_size, shuffle=False, num_workers=0)
+#val_loader = DataLoader(val_dataset, args.batch_size, shuffle=False, num_workers=0)
 
 cpu = torch.device("cpu")
 
@@ -138,7 +133,7 @@ def train(args, model, device, dataloader, optimizer, epoch):
 		loss.backward()
 		optimizer.step()
 		if batch_idx == len(dataloader) - 1:
-			loss_list.append(loss.item())
+			#loss_list.append(loss.item())
 			print(f'Train Epoch: {i} Loss: {loss.item()}')
 			if args.dry_run:
 				break
@@ -199,6 +194,7 @@ model.to(device)
 
 # 繰り返し数は要調整
 # Lossが0.05くらいまで下がるはず（下がらなかったらやり直す）
+"""
 loss_list = []
 val_loss_list = []
 acc_list = []
@@ -212,10 +208,12 @@ fig = plt.figure(figsize=(8,10))
 ax1 = fig.add_subplot(3,1,1)
 ax2 = fig.add_subplot(3,1,2)
 ax3 = fig.add_subplot(3,1,3)
+"""
 
 for i in range(args.epochs):
 	train(args, model=model, device=device, dataloader=train_loader, optimizer=optimizer, epoch=i)
-	valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
+	"""
+        valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
 
 	ax1.plot(range(i+1), loss_list, 'r', label='train_loss', linewidth=2)
 	ax1.plot(range(i+1), val_loss_list, 'b', label='val_loss', linewidth=2)
@@ -271,8 +269,65 @@ for i in range(args.epochs):
 	ax1.cla()
 	ax2.cla()
 	ax3.cla()
+        """
 
 # save to file
 cpu = torch.device("cpu")
 model.to(cpu)
-torch.save(model.state_dict(), "wl_model.pt")
+torch.save(model.state_dict(), "sf_model.pt")
+
+# load model from file
+model_path = "sf_model.pt"
+
+model = MLP.MLP(4, 3)
+model.load_state_dict(torch.load(model_path))
+model.eval()
+
+def eval_image(index, fname, thre):
+	imw = IMW
+	imh = IMH
+	testx = np.zeros((0, 3, imh, imw), dtype=np.float32)
+
+	a, img = load_image(fname, imw, imh)
+	a1 = np.expand_dims(a,axis=0)
+
+	testx = np.append(testx, a1, axis=0)
+
+	t0 = time.time()
+	testy = model(torch.FloatTensor(testx))
+	print(f"testy : {testy.shape}")
+	print('forward time [s]: ' + str(time.time()-t0))
+
+	imd = Image.new('RGB', (imw*3, imh))
+    
+	thimg_g = (testy.to(cpu).detach().numpy()[0][0] > thre) * 255
+	thimg_w = (testy.to(cpu).detach().numpy()[0][1] > thre) * 255
+
+	print(f'max {np.max(thimg_g)}')
+	print(f'min {np.min(thimg_g)}')
+
+	print(f'max {np.max(thimg_w)}')
+	print(f'min {np.min(thimg_w)}')
+
+	thimg_g = thimg_g.astype(np.uint8)
+	thimg_w = thimg_w.astype(np.uint8)
+
+	thimg_g = Image.fromarray(thimg_g).convert('L')
+	thimg_w = Image.fromarray(thimg_w).convert('L')
+
+	imd.paste(img, (0,0))
+	imd.paste(thimg_g, (imw, 0))
+	imd.paste(thimg_w, (imw*2, 0))
+	plt.figure(figsize=(16,9))
+	plt.imshow(imd)
+	plt.show()
+	
+	try:
+		os.mkdir('eval_image')
+	except FileExistsError:
+		pass
+	plt.savefig('eval_image/eval_img_' + str(index).zfill(3) + '.png')
+
+test_files = glob.glob('test_dataset/*.jpg')
+for idx, tf in enumerate(test_files):
+	eval_image(idx, tf, 0.5)
