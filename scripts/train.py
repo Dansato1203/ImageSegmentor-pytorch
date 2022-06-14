@@ -14,8 +14,8 @@ import glob
 import os
 import time
 
-IMW = 320
-IMH = 240
+IMW = 640
+IMH = 480
 
 import matplotlib.pyplot as plt
 
@@ -31,7 +31,7 @@ def png2array(lfile_array, imw, imh):
 	a = np.zeros((3, imh, imw), dtype=np.float32)
 	for x in range(imw):
 		for y in range(imh):
-			if (lfile_array[y][x] == 50):
+			if (lfile_array[y][x] == 40):
 				a[0][y][x] = 1
 			elif (lfile_array[y][x] == 225):
 				a[1][y][x] = 1
@@ -92,13 +92,13 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch-size', type=int, default=5, metavar='N',
+parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=1000, metavar='N',
+parser.add_argument('--epochs', type=int, default=50000, metavar='N',
                     help='number of epochs to train (default: 14)')
-parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                     help='learning rate (default: 1.0)')
 parser.add_argument('--gamma', type=float, default=0.7, metavar='M',
                     help='Learning rate step gamma (default: 0.7)')
@@ -274,10 +274,10 @@ for i in range(args.epochs):
 # save to file
 cpu = torch.device("cpu")
 model.to(cpu)
-torch.save(model.state_dict(), "sf_model.pt")
+torch.save(model.state_dict(), "train_result/sf_model.pt")
 
 # load model from file
-model_path = "sf_model.pt"
+model_path = "train_result/sf_model.pt"
 
 model = MLP.MLP(4, 3)
 model.load_state_dict(torch.load(model_path))
@@ -326,7 +326,7 @@ def eval_image(index, fname, thre):
 		os.mkdir('eval_image')
 	except FileExistsError:
 		pass
-	plt.savefig('eval_image/eval_img_' + str(index).zfill(3) + '.png')
+	plt.savefig('train_result/eval_image/eval_img_' + str(index).zfill(3) + '.png')
 
 test_files = glob.glob('test_dataset/*.jpg')
 for idx, tf in enumerate(test_files):
