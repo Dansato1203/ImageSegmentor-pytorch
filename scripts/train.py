@@ -4,22 +4,19 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 
-from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
-
 import cv2
 from PIL import Image
+import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import glob
 import os
 import time
 
-IMW = 640
-IMH = 480
-
-import matplotlib.pyplot as plt
-
 import MLP
+
+IMW = 320
+IMH = 240
 
 def load_image(fname, imw, imh):
 	img = Image.open(fname).resize((imw, imh))
@@ -46,31 +43,23 @@ class SoccerFieldDataset(Dataset):
 		jpgfiles = glob.glob(image_dir + '*.jpg')
 		print(jpgfiles)
 		for f in jpgfiles:
-			#plt.figure()
 			a, img = load_image(f, imw, imh)
 			a1 = np.expand_dims(a,axis=0)
 			x = np.append(x, a1, axis=0)
            
-			#plt.imshow(img)
             
 			lfile = os.path.splitext(f)[0] + '_label.png'
 			print(lfile)
 			img = Image.open(lfile).resize((imw, imh))
             
-			#plt.figure()
-			#plt.imshow(img)
-            
 			a = np.asarray(img).astype(np.float32)
 			a = a.astype(np.int32)
-			#print(np.sum(a))
 			a = png2array(a, imw, imh)
 			a1 = np.expand_dims(a,axis=0)
 			t = np.append(t, a1, axis=0)
         
 		self.data  = x
 		self.label = t
-		#print(self.data.shape)
-		#print(self.label.shape)
 
 	def __len__(self):
 		return self.data.shape[0]
@@ -78,13 +67,8 @@ class SoccerFieldDataset(Dataset):
 	def __getitem__(self, idx):
 		if torch.is_tensor(idx):
 			idx = idx.tolist()
-		#print(self.data.shape)
-		#print(self.label.shape)
 		images = self.data[idx, :, :, :]
 		labels = self.label[idx, :, :]
-
-		#print(f"images: {images}")
-		#rint(f"labels: {labels}")
 
 		return (images, labels)
 
@@ -124,7 +108,7 @@ cpu = torch.device("cpu")
 # exec training
 def train(args, model, device, dataloader, optimizer, epoch):
 	model.train()
-	lossfun = nn.BCELoss()
+	lossfun = nn.Loss()
 	for batch_idx, (train_data, train_target) in enumerate(dataloader):
 		train_data, train_target = train_data.to(device), train_target.to(device)
 		optimizer.zero_grad()
@@ -153,37 +137,19 @@ def valid(args, model, device, dataloader, epoch):
 				  
 				# pred
 				pred_all = ((output.to(cpu).detach().numpy() > 0.5) * 255) / 255
-				pred_g = ((output.to(cpu).detach().numpy()[:][0] > 0.5) * 255) / 255
-				pred_w = ((output.to(cpu).detach().numpy()[:][1] > 0.5) * 255) / 255
 
 				#target
 				target_all = target.to(cpu).detach().numpy()
-				target_g = target.to(cpu).detach().numpy()[:][0]
-				target_w = target.to(cpu).detach().numpy()[:][1]
 
 				# tensor to numpy
 				target_cpu, pred_cpu = target_all.reshape(-1), pred_all.reshape(-1)
-				target_g, pred_g = target_g.reshape(-1), pred_g.reshape(-1)
-				target_w, pred_w = target_w.reshape(-1), pred_w.reshape(-1)
 
 				print(f"cm : {confusion_matrix(target_cpu, pred_cpu)}")
 				acc = accuracy_score(target_cpu, pred_cpu)
-				acc_g = accuracy_score(target_g, pred_g)
-				acc_w = accuracy_score(target_w, pred_w)
 				print(f"acc : {acc}")
-				print(f"acc_g : {acc_g}")
-				print(f"acc_w : {acc_w}")
-				acc_list.append(acc.item())
-				acc_g_list.append(acc_g.item())
-				acc_w_list.append(acc_w.item())
 
 				f1_all = f1_score(target_cpu, pred_cpu)
-				f1_g = f1_score(target_g, pred_g)
-				f1_w = f1_score(target_w, pred_w)
 				print(f"f_score : {f1_all}")
-				f_list.append(f1_all.item())
-				f_g_list.append(f1_g.item())
-				f_w_list.append(f1_w.item())
 
 				if args.dry_run:
 					break
@@ -194,82 +160,10 @@ model.to(device)
 
 # 繰り返し数は要調整
 # Lossが0.05くらいまで下がるはず（下がらなかったらやり直す）
-"""
-loss_list = []
-val_loss_list = []
-acc_list = []
-acc_g_list = []
-acc_w_list = []
-f_list = []
-f_g_list = []
-f_w_list = []
-
-fig = plt.figure(figsize=(8,10))
-ax1 = fig.add_subplot(3,1,1)
-ax2 = fig.add_subplot(3,1,2)
-ax3 = fig.add_subplot(3,1,3)
-"""
 
 for i in range(args.epochs):
 	train(args, model=model, device=device, dataloader=train_loader, optimizer=optimizer, epoch=i)
-	"""
-        valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
-
-	ax1.plot(range(i+1), loss_list, 'r', label='train_loss', linewidth=2)
-	ax1.plot(range(i+1), val_loss_list, 'b', label='val_loss', linewidth=2)
-	ax1.legend(fontsize=10)
-	[xmin, xmax, ymin, ymax] = ax1.axis()
-	ax1.axis([0, args.epochs, 0, ymax])
-	ax1.grid(True)
-	ax1.set_xlabel('epoch')
-	ax1.set_ylabel('loss')
-	ax1.set_xticks(range(0, args.epochs + 1, 500))
-
-	ax2.plot(range(i+1), acc_list, 'r', label='all_accuracy', linewidth=2)
-	ax2.plot(range(i+1), acc_g_list, 'g', label='green_accuracy', linewidth=2)
-	ax2.plot(range(i+1), acc_w_list, 'k', label='white_accuracy', linewidth=2)
-	ax2.legend(fontsize=10)
-	[xmin, xmax, ymin, ymax] = ax2.axis()
-	ax2.axis([0, args.epochs, ymin-0.2, ymax])
-	ax2.grid(True)
-	ax2.set_xlabel('epoch')
-	ax2.set_ylabel('accuracy')
-	ax2.set_xticks(range(0, args.epochs + 1, 500))
-
-	ax3.plot(range(i+1), f_list, 'r', label='all_f-score', linewidth=2)
-	ax3.plot(range(i+1), f_g_list, 'b', label='green_f-score', linewidth=2)
-	ax3.plot(range(i+1), f_w_list, 'y', label='white_f-score', linewidth=2)
-	ax3.legend(fontsize=10)
-	[xmin, xmax, ymin, ymax] = ax3.axis()
-	ax3.axis([0, args.epochs, 0, ymax])
-	ax3.grid(True)
-	ax3.set_xlabel('epoch')
-	ax3.set_ylabel('f_score')
-	ax3.set_xticks(range(0, args.epochs + 1, 500))
-
-	if i == 0:
-		ax1.legend(fontsize=10)
-		ax2.legend(fontsize=10)
-		ax3.legend(fontsize=10)
-
-	if i == args.epochs - 1:
-		plt.savefig("graph.png")
-
-	if i % 100 == 0:
-		ax1.text(i+1, loss_list[i], str(loss_list[i]), c = 'r',  va = 'bottom')
-		ax1.text(i+1, val_loss_list[i], str(val_loss_list[i]), c = 'b', va = 'bottom')
-
-	if i % 500 == 0:
-		cpu = torch.device("cpu")
-		model.to(cpu)
-		torch.save(model.state_dict(), "220109_" + str(i) +  "_wl_model.pt")
-		model.to(device)
-
-	plt.pause(.05)
-	ax1.cla()
-	ax2.cla()
-	ax3.cla()
-        """
+    #valid(args, model=model, device=device, dataloader=val_loader, epoch=i)
 
 # save to file
 cpu = torch.device("cpu")
