@@ -31,7 +31,7 @@ def png2array(lfile_array, imw, imh):
 			if (lfile_array[y][x] == 40):
 				a[0][y][x] = 1
 			elif (lfile_array[y][x] == 225):
-				a[1][y][x] = 1
+				a[1][y][x] = 2
 	return a
 
 class SoccerFieldDataset(Dataset):
@@ -80,9 +80,9 @@ parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=50000, metavar='N',
+parser.add_argument('--epochs', type=int, default=100, metavar='N',
                     help='number of epochs to train (default: 14)')
-parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.05, metavar='LR',
                     help='learning rate (default: 1.0)')
 parser.add_argument('--gamma', type=float, default=0.7, metavar='M',
                     help='Learning rate step gamma (default: 0.7)')
@@ -108,7 +108,7 @@ cpu = torch.device("cpu")
 # exec training
 def train(args, model, device, dataloader, optimizer, epoch):
 	model.train()
-	lossfun = nn.Loss()
+	lossfun = nn.BCELoss()
 	for batch_idx, (train_data, train_target) in enumerate(dataloader):
 		train_data, train_target = train_data.to(device), train_target.to(device)
 		optimizer.zero_grad()
@@ -215,13 +215,9 @@ def eval_image(index, fname, thre):
 	plt.figure(figsize=(16,9))
 	plt.imshow(imd)
 	plt.show()
-	
-	try:
-		os.mkdir('eval_image')
-	except FileExistsError:
-		pass
 	plt.savefig('train_result/eval_image/eval_img_' + str(index).zfill(3) + '.png')
 
 test_files = glob.glob('test_dataset/*.jpg')
+os.makedirs('/train/train_result/eval_image', exist_ok=True)
 for idx, tf in enumerate(test_files):
 	eval_image(idx, tf, 0.5)

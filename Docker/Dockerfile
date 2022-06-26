@@ -1,5 +1,6 @@
 FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 ARG weight_name="traced_sf_model.pt"
+ENV weight_name ${weight_name}
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -21,11 +22,11 @@ RUN pip3 install --upgrade pip \
 
 WORKDIR /train
 
-COPY 220611_dataset/train_dataset /train/train_dataset
-COPY 220611_dataset/test_dataset /train/test_dataset
+COPY 220623_dataset/train_dataset /train/train_dataset
+COPY 220623_dataset/test_dataset /train/test_dataset
 COPY scripts/MLP.py /train/
 COPY scripts/train.py /train/
 COPY scripts/model_trace.py /train/
 COPY Docker/run_train.sh /train/
 
-CMD ["./run_train.sh", "$weight_name"]
+CMD ./run_train.sh ${weight_name}
