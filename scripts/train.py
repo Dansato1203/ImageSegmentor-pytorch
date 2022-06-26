@@ -31,7 +31,7 @@ def png2array(lfile_array, imw, imh):
 			if (lfile_array[y][x] == 40):
 				a[0][y][x] = 1
 			elif (lfile_array[y][x] == 225):
-				a[1][y][x] = 2
+				a[1][y][x] = 1
 	return a
 
 class SoccerFieldDataset(Dataset):
@@ -80,9 +80,9 @@ parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=100, metavar='N',
+parser.add_argument('--epochs', type=int, default=30000, metavar='N',
                     help='number of epochs to train (default: 14)')
-parser.add_argument('--lr', type=float, default=0.05, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
                     help='learning rate (default: 1.0)')
 parser.add_argument('--gamma', type=float, default=0.7, metavar='M',
                     help='Learning rate step gamma (default: 0.7)')
@@ -108,7 +108,7 @@ cpu = torch.device("cpu")
 # exec training
 def train(args, model, device, dataloader, optimizer, epoch):
 	model.train()
-	lossfun = nn.BCELoss()
+	lossfun = nn.CrossEntropyLoss()
 	for batch_idx, (train_data, train_target) in enumerate(dataloader):
 		train_data, train_target = train_data.to(device), train_target.to(device)
 		optimizer.zero_grad()
@@ -154,7 +154,7 @@ def valid(args, model, device, dataloader, epoch):
 				if args.dry_run:
 					break
 
-model = MLP.MLP(4, 3).to(device)
+model = MLP.MLP().to(device)
 optimizer = optim.Adadelta(model.parameters(), lr=args.lr, weight_decay=0.001)
 model.to(device)
 

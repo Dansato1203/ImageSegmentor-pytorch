@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 model_path = "train_result/sf_model.pt"
 
-model = MLP.MLP(4, 3)
+model = MLP.MLP()
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
