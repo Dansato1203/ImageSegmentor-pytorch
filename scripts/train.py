@@ -25,13 +25,16 @@ def load_image(fname, imw, imh):
 	return a, img
 
 def png2array(lfile_array, imw, imh):
-	a = np.zeros((3, imh, imw), dtype=np.float32)
+	a = np.zeros((imh, imw), dtype=np.float32)
 	for x in range(imw):
 		for y in range(imh):
 			if (lfile_array[y][x] == 40):
-				a[0][y][x] = 1
+				a[y][x] = 0
 			elif (lfile_array[y][x] == 225):
-				a[1][y][x] = 1
+				a[y][x] = 1
+			else:
+				a[y][x] = 2
+
 	return a
 
 class SoccerFieldDataset(Dataset):
@@ -39,24 +42,26 @@ class SoccerFieldDataset(Dataset):
 		imw = IMW
 		imh = IMH
 		x = np.zeros((0, 3, imh, imw), dtype=np.float32)
-		t = np.zeros((0, 3, imh, imw), dtype=np.float32)
+		t = np.zeros((0, imh, imw), dtype=np.float32)
 		jpgfiles = glob.glob(image_dir + '*.jpg')
 		print(jpgfiles)
 		for f in jpgfiles:
 			a, img = load_image(f, imw, imh)
 			a1 = np.expand_dims(a,axis=0)
 			x = np.append(x, a1, axis=0)
-           
             
 			lfile = os.path.splitext(f)[0] + '_label.png'
 			print(lfile)
 			img = Image.open(lfile).resize((imw, imh))
             
 			a = np.asarray(img).astype(np.float32)
-			a = a.astype(np.int32)
+			print(f"a: {a.shape}")
+			#a = a.astype(np.int32)
 			a = png2array(a, imw, imh)
+			print(f"a: {a.shape}")
 			a1 = np.expand_dims(a,axis=0)
 			t = np.append(t, a1, axis=0)
+			print(f"t: {t.shape}")
         
 		self.data  = x
 		self.label = t
@@ -80,7 +85,7 @@ parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=30000, metavar='N',
+parser.add_argument('--epochs', type=int, default=1000, metavar='N',
                     help='number of epochs to train (default: 14)')
 parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
                     help='learning rate (default: 1.0)')
@@ -110,7 +115,7 @@ def train(args, model, device, dataloader, optimizer, epoch):
 	model.train()
 	lossfun = nn.CrossEntropyLoss()
 	for batch_idx, (train_data, train_target) in enumerate(dataloader):
-		train_data, train_target = train_data.to(device), train_target.to(device)
+		train_data, train_target = train_data.to(device), train_target.to(device, dtype=torch.long)
 		optimizer.zero_grad()
 		output = model(train_data)
 		loss = lossfun(output, train_target)
@@ -173,7 +178,7 @@ torch.save(model.state_dict(), "train_result/sf_model.pt")
 # load model from file
 model_path = "train_result/sf_model.pt"
 
-model = MLP.MLP(4, 3)
+model = MLP.MLP()
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
@@ -190,12 +195,23 @@ def eval_image(index, fname, thre):
 	t0 = time.time()
 	testy = model(torch.FloatTensor(testx))
 	print(f"testy : {testy.shape}")
+	print(f"testy : {testy.argmax(1)}")
 	print('forward time [s]: ' + str(time.time()-t0))
 
 	imd = Image.new('RGB', (imw*3, imh))
     
 	thimg_g = (testy.to(cpu).detach().numpy()[0][0] > thre) * 255
 	thimg_w = (testy.to(cpu).detach().numpy()[0][1] > thre) * 255
+
+	"""
+	testy = testy.to(cpu).argmax(1).detach().numpy
+	for y in range(imh):
+		for x in range(imw):
+			if testy[y][x] == 0:
+				thimg_g[y][x] == 255
+			if testy[y][x] == 1:
+				thimg_w[y][x] == 255
+	"""
 
 	print(f'max {np.max(thimg_g)}')
 	print(f'min {np.min(thimg_g)}')

@@ -13,4 +13,4 @@ docker run $gpu -it --rm -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 	--runtime=nvidia \
 	--name pytorch_train \
 	-v $PWD/train_result:/train/train_result:rw \
-	$DOCKER_IMAGE 
+	$DOCKER_IMAGE bash 

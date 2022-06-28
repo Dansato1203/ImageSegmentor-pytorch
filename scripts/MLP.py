@@ -11,5 +11,5 @@ class MLP(nn.Module):
 	def forward(self, x):
 		x = F.relu(self.l1(x))
 		x = F.relu(self.l2(x))
-		x = nn.Linear(3, 3)
+		#x = self.fc1(x)
 		return x
