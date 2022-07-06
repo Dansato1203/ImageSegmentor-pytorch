@@ -2,7 +2,9 @@ import torch
 import MLP
 import numpy as np
 import argparse
+import glob
 from PIL import Image
+from numpy.random import *
 
 def load_image(fname, imw, imh):
 	img = Image.open(fname).resize((imw, imh))
@@ -20,8 +22,11 @@ model = MLP.MLP(4, 3)
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
+test_images = glob.glob('/train/test_dataset/*.jpg')
+rand_num = randint(len(test_images))
+
 # save torchscript for C++
-a, img = load_image('/train/test_dataset/000317.jpg', 320, 240)
+a, img = load_image(test_images[rand_num], 320, 240)
 #a1 = np.expand_dims(a,axis=0)
 ex = np.expand_dims(a, axis=0)
 traced_script_module = torch.jit.trace(model, torch.FloatTensor(ex))
