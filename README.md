@@ -1,36 +1,37 @@
-# soccerfield_detector  
+# ImageSegmentor-pytorch
+
+## 概要
+ImageSegmentor-pytorchは，3クラスの領域を対象とした汎用的なセマンティックセグメンテーションツールです．  
+このリポジトリには，PythonによるテストコードおよびLibTorch (C++) によるテストコードが含まれています．  
+
+## 特徴
+- 3クラスのオブジェクトに対応する柔軟なセマンティックセグメンテーション機能
+- PythonとLibTorch (C++) 両方でのテストコード提供
+- カスタマイズが容易な学習パイプライン
+
+## requirements
+ImageSegmentor-pytorchを使用するためには，以下のライブラリが必要です．
+- PyTorch >= 1.9
+- numpy
+- OpenCV
+- Matplotlib
+
   
-## Usage
-1. データセット（オリジナル画像とラベル画像がセットになったもの）をドライブからダウンロードする。
+## 使用法
+1. データセットを準備する
+   
+1.1. サンプルデータセットは以下にあります． （サッカーフィールドの白線，芝生のデータセット）
   
-2. zipであれば解凍し、soccerfield_detectorディレクトリの下に配置する。  
-```
-soccerfield_detector/  
-　├ データセット/  
-　│　　　├ *.jpg
-　│　　　└ *.png
-　├ scripts/  
-　├ Docker/  
-　└ src/  
- ```  
-  
- 3. Dockerfileのデータセットの名前を変更する  
-https://github.com/Dansato1203/soccerfield_detector/blob/9dd641a61ec6c574ef3f4910f9d782eda6df1dfe/Docker/Dockerfile#L25
-変更するのは、**上記の前の部分（220623_dataset/train_dataset）** のみ  
-中にjpgファイルとpngファイルが入っているディレクトリの名前に変更する   
-  
-4. Docker build  
+
+4. With Docker   
 ```bash
-# soccerfield_detectorディレクトリ上で
-Docker build -t pytorch_train:{タグ} -f Docker/Dockerfile .
+Docker build -t pytorch_train:{IMAGE_NAME} -f Docker/Dockerfile .
 ```  
   
-5. 学習開始  
-上記でつけたタグ名にlaunch_train.sh内のタグを変更する  
-https://github.com/Dansato1203/soccerfield_detector/blob/9dd641a61ec6c574ef3f4910f9d782eda6df1dfe/launch_train.sh#L2
-変更したのちスクリプトを実行する  
+5. 学習  
+以下のスクリプトで学習を開始できます．  
 ```
-./launch_train.sh
+./launch_train.sh ${IMAGE_NAME}
 ```  
   
 6. 重みのアップロード
