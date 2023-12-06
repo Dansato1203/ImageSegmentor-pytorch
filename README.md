@@ -15,6 +15,7 @@ ImageSegmentor-pytorchを使用するためには，以下のライブラリが�
 - numpy
 - OpenCV
 - Matplotlib
+- scikit-learn
 
   
 ## 使用法
