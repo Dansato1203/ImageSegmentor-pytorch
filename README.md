@@ -1,7 +1,10 @@
 # ImageSegmentor-pytorch
 
 ## 概要
-ImageSegmentor-pytorchは，3クラスの領域を対象とした汎用的なセマンティックセグメンテーションツールです．  
+ImageSegmentor-pytorchは，3クラスの領域を対象とした汎用的なセマンティックセグメンテーションツールです． 
+<br>  
+<img src=https://github.com/Dansato1203/images/blob/80087c2c11f391a33e831e3a43dde770e7476052/ImageSegmentor-pytorch/eval_img_003.png>
+
 このリポジトリには，PythonによるテストコードおよびLibTorch (C++) によるテストコードが含まれています．  
 
 ## 特徴
